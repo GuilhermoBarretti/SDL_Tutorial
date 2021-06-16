@@ -2,4 +2,6 @@
 *.lib
 *.obj
 *.exe
-*.png
+*.sublime-project
+*.sublime-workspace
+win.cpp
