@@ -2,14 +2,15 @@
 #define SCENE_H
 
 #include "button.hpp"
+#include "player.hpp"
 
 class Game;
 
 class Scene
 {
 	Button btn_left, btn_right;
-	SDL_Rect player;
-	int velocity;
+	Player player;
+
 	int mouse_x, mouse_y;
 
 	Game *game = NULL;

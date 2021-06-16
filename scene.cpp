@@ -6,13 +6,11 @@ Scene::Scene(Game *_game)
 {
 	game = _game;
 	
-	velocity = 1;
-
 	player.w = 100;
-	player.h = 100;
-
+	player.h = 30;
 	player.x = game->screen_width/2;
-	player.y = game->screen_height/2;
+	player.y = game->screen_height - game->screen_height/6;
+	player.velocity = 0.3f;
 }
 
 Scene::~Scene()
@@ -85,11 +83,11 @@ void Scene::Update()
 
 	if (btn_left.GetValue())
 	{
-		player.x -= velocity;
+		player.x -= player.velocity;
 	}
 	if (btn_right.GetValue())
 	{
-		player.x += velocity;
+		player.x += player.velocity;
 	}
 
 }
@@ -100,7 +98,13 @@ void Scene::Draw()
 	SDL_RenderClear(game->renderer);
 
 	SDL_SetRenderDrawColor(game->renderer, 255, 0, 0, 255);
-	SDL_RenderFillRect(game->renderer, &player);
+
+	SDL_Rect player_rect;
+	player_rect.w = (int) player.w;
+	player_rect.h = (int) player.h;
+	player_rect.x = (int) player.x;
+	player_rect.y = (int) player.y;
+	SDL_RenderFillRect(game->renderer, &player_rect);
 
     SDL_RenderPresent(game->renderer);
 }
