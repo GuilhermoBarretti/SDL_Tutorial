@@ -5,11 +5,11 @@
 #include "game.hpp"
 #include "scene.hpp"
 
-//cl main.cpp scene.cpp button.cpp /Iinclude SDL2main.lib SDL2.lib SDL2_image.lib
+//cl main.cpp scene.cpp button.cpp player.cpp /Iinclude SDL2main.lib SDL2.lib SDL2_image.lib
 
 /*
-	Objetivo: Fazer breakout
-	
+	Breakout Game
+	- 
 	- Usar surfaces
 */
 
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
         SDL_WINDOWPOS_UNDEFINED,           // initial y position
         game->screen_width,                // width, in pixels
         game->screen_height,               // height, in pixels
-        NULL               				   // flags - see below
+        SDL_WINDOW_RESIZABLE			   // flags - see below
     );
     game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED);
 

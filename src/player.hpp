@@ -8,6 +8,8 @@ public:
 	float x, y;
 	float velocity;
 
+	Player();
+	~Player();
 };
 
 #endif

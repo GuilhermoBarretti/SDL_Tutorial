@@ -5,12 +5,6 @@
 Scene::Scene(Game *_game)
 {
 	game = _game;
-	
-	player.w = 100;
-	player.h = 30;
-	player.x = game->screen_width/2;
-	player.y = game->screen_height - game->screen_height/6;
-	player.velocity = 0.3f;
 }
 
 Scene::~Scene()
@@ -28,6 +22,13 @@ void Scene::HandleInput()
 	{
 		switch(event.type)
 		{
+			case SDL_WINDOWEVENT:
+				if (SDL_WINDOWEVENT_SIZE_CHANGED)
+				{
+					SDL_GetWindowSize(game->window, &(game->screen_width), &(game->screen_height));
+					SDL_Log("w:%d h: %d\n", game->screen_width, game->screen_height);
+				}
+				break;
 			case SDL_QUIT:
 				SDL_Log("Quit");
 				game->quit = true;
@@ -78,9 +79,6 @@ void Scene::HandleInput()
 
 void Scene::Update()
 {
-	// player.x = mouse_x - player.w/2;
-	// player.y = mouse_y - player.h/2;
-
 	if (btn_left.GetValue())
 	{
 		player.x -= player.velocity;
@@ -89,7 +87,6 @@ void Scene::Update()
 	{
 		player.x += player.velocity;
 	}
-
 }
 
 void Scene::Draw()
@@ -100,10 +97,11 @@ void Scene::Draw()
 	SDL_SetRenderDrawColor(game->renderer, 255, 0, 0, 255);
 
 	SDL_Rect player_rect;
-	player_rect.w = (int) player.w;
-	player_rect.h = (int) player.h;
-	player_rect.x = (int) player.x;
-	player_rect.y = (int) player.y;
+	player_rect.w = (int)(player.w * game->screen_width);
+	player_rect.h = (int)(player.h * game->screen_height);
+
+	player_rect.x = (int)(((player.x - (player.w/2))) * game->screen_width);
+	player_rect.y = (int)(((player.y - (player.h/2))) * game->screen_height);
 	SDL_RenderFillRect(game->renderer, &player_rect);
 
     SDL_RenderPresent(game->renderer);
