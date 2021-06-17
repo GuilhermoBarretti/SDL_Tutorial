@@ -9,7 +9,6 @@
 
 /*
 	Breakout Game
-	- 
 	- Usar surfaces
 */
 
