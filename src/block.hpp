@@ -1,12 +1,12 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-class Block
+#include "object.hpp"
+
+class Block : public Object
 {
 public:
-	bool active = true;
-	float x, y;
-	float w, h;
+	bool active;
 };
 
 #endif

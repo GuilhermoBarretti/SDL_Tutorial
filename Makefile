@@ -9,7 +9,7 @@ SRC=$(FILE_WITH_PATH)
 OBJ=$(addsuffix .obj, $(FILE))
 LDFLAGS=/LIBPATH:./lib/ SDL2.lib SDL2main.lib SDL2_image.lib
 INCL=/I./include/
-CFLAGS=
+CFLAGS=/std:c++17
 EXE=game.exe
 
 all: $(SRC) $(EXE)

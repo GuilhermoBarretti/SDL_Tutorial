@@ -1,12 +1,11 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-class Player
+#include "object.hpp"
+
+class Player : public Object
 {	
 public:
-	float w, h;
-	float x, y;
-	float velocity;
 
 	Player();
 	~Player();

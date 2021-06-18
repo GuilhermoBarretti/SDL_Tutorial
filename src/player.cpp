@@ -7,7 +7,7 @@ Player::Player()
 	h = 0.05f;
 	x = 0.5f; // centro da tela
 	y = 0.90f;	// centro da tela
-	velocity = 0.0005f;
+	velocity_x = 0.0005f;
 }
 
 Player::~Player()
