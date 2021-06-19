@@ -9,7 +9,8 @@
 
 /*
 	Breakout Game
-	- Usar surfaces
+	- Surface
+    - Física Circulo com retângulos
 */
 
 int main(int argc, char* argv[])
@@ -53,23 +54,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
-
-// static SDL_Surface* LoadImage(std::string path)
-// {
-// 	SDL_Surface* img = IMG_Load(path.c_str());
-
-// 	if (img == NULL)
-// 	{
-// 		fprintf(stderr, "could not load image: %s\n", IMG_GetError());
-// 		return NULL;
-// 	}
-
-// 	SDL_Surface* optimizedImg = SDL_ConvertSurface(img, screen_surface->format, 0);
-
-// 	if (optimizedImg == NULL) 
-// 		fprintf(stderr, "could not optimize image: %s\n", SDL_GetError());
-// 	SDL_FreeSurface(img);
-	
-// 	return optimizedImg;
-// }

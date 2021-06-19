@@ -27,6 +27,14 @@ public:
 	void CheckCollisionBallPlayer();
 	void CheckCollisionBallBlock();
 
+	void BallBlockCollision(Block &block);
+	void BallBlockCollision1(Block &block);
+	void BallBlockCollision2(Block &block);
+
+	void DrawPlayer();
+	void DrawBall();
+	void DrawBlocks();
+
 	void HandleInput();
 	void Update();
 	void Draw();
