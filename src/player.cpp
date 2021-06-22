@@ -3,11 +3,12 @@
 Player::Player()
 {
 	// Coordenadas virtuais do jogo são 1x1;
-	w = 0.20f;
-	h = 0.05f;
-	x = 0.5f; // centro da tela
-	y = 0.90f;	// centro da tela
-	velocity_x = 0.0005f;
+	size.x = 0.20f;
+	size.y = 0.05f;
+	
+	position.x = 0.5f; // centro da tela
+	position.y = 0.90f;	// centro da tela
+	velocity.x = 0.0005f;
 }
 
 Player::~Player()

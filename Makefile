@@ -8,7 +8,7 @@ SRCS1=$(addprefix ./src/, $(FILE))
 SRC=$(FILE_WITH_PATH)
 OBJ=$(addsuffix .obj, $(FILE))
 LDFLAGS=/LIBPATH:./lib/ SDL2.lib SDL2main.lib SDL2_image.lib
-INCL=/I./include/
+INCL=/I./include/ /I./include/glm
 CFLAGS=/std:c++17
 EXE=game.exe
 

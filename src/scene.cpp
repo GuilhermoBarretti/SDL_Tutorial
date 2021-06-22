@@ -2,25 +2,32 @@
 #include "scene.hpp"
 #include "game.hpp"
 #include <algorithm>
+#include <glm/gtx/exterior_product.hpp>
 
 # define PI 3.14159265358979323846
 
 Scene::Scene(Game *_game)
 {
-	ball_velocity = 0.00002f;
+	ball_velocity = 0.0001f;
 	game = _game;
 	
 	CreateBlocks();
 
-	ball.x = 0.5f;
-	ball.y = 0.5f;
-	ball.w = 0.025f;
-	ball.h = 0.020f;
-	ball.velocity_x = ball_velocity;
-	ball.velocity_y = ball_velocity;
+	ball.position.x = 0.5f;
+	ball.position.y = 0.5f;
+	ball.size.x = 0.025f;
+	ball.size.y = 0.020f;
+	ball.velocity.x = ball_velocity;
+	ball.velocity.y = ball_velocity;
 
-	ball.velocity_x = cosf((7 * PI)/4) * ball_velocity;
-	ball.velocity_y = -sinf((7 * PI)/4) * ball_velocity;
+	ball.velocity.x = cosf((7 * PI)/4) * ball_velocity;
+	ball.velocity.y = -sinf((7 * PI)/4) * ball_velocity;
+
+	ball.texture = game->LoadTexture("resources/ball.png");
+	if (ball.texture == NULL)
+	{
+		printf("error loading texture\n");
+	}
 }
 
 Scene::~Scene()
@@ -89,18 +96,19 @@ void Scene::HandleInput()
 
 void Scene::Update()
 {
+	ball.collided = false;
+
 	if (btn_left.GetValue())
 	{
-		player.x -= player.velocity_x;
+		player.position.x -= player.velocity.x;
 	}
 	if (btn_right.GetValue())
 	{
-		player.x += player.velocity_x;
+		player.position.x += player.velocity.x;
 	}
 	
 	// Update Ball Position
-	ball.x += ball.velocity_x;
-	ball.y += ball.velocity_y;
+	ball.position += ball.velocity;
 
 	CheckBoundaries();
 	CheckCollisionBallPlayer();
@@ -113,208 +121,159 @@ void Scene::CheckCollisionBallBlock()
 	{
 		if (block.active)
 		{
-			BallBlockCollision(block);
+			BallBlockCollisionRectangle(block);
 		}
+	}
+}
+
+Direction Scene::VectorDirection(Block block)
+{
+	Direction direction;
+
+	glm::vec2 block_top_right = glm::vec2(block.size.x/2, -block.size.y/2);
+	glm::vec2 block_top_left = glm::vec2(-block.size.x/2, -block.size.y/2);
+	glm::vec2 block_bottom_left = glm::vec2(-block.size.x/2, block.size.y/2);
+	glm::vec2 block_bottom_right = glm::vec2(block.size.x/2, block.size.y/2);
+
+	glm::vec2 distance = ball.position - block.position;
+
+	if (glm::cross(block_bottom_right, distance) <= 0 &&
+		glm::cross(distance, block_top_right) <= 0)
+	{
+		return RIGHT;
+	}
+
+	if (glm::cross(block_top_right, distance) <= 0 &&
+		glm::cross(distance, block_top_left) <= 0)
+	{
+		return TOP;
+	}
+
+	if (glm::cross(block_top_left, distance) <= 0 &&
+		glm::cross(distance, block_bottom_left) <= 0)
+	{
+		return LEFT;
+	}
+
+	if (glm::cross(block_bottom_left, distance) <= 0 &&
+		glm::cross(distance, block_bottom_right) <= 0)
+	{
+		return BOTTOM;
+	}
+
+	return (Direction) -1;
+}
+
+
+void Scene::BallCollisionResolution(Direction direction, Block &block)
+{
+	ball.collided = true;
+	block.active = false;
+
+	switch (direction)
+	{
+		case TOP:
+			ball.velocity.y = -ball.velocity.y;
+			ball.position.y = block.position.y - (ball.size.y/2) - (block.size.y/2);
+			break;
+		case BOTTOM:
+			ball.velocity.y = -ball.velocity.y;
+			ball.position.y = block.position.y + (ball.size.y/2) + (block.size.y/2);
+			break;
+		case LEFT:
+			ball.velocity.x = -ball.velocity.x;
+			ball.position.x = block.position.x - (ball.size.x/2) - (block.size.x/2);
+			break;
+		case RIGHT:
+			ball.velocity.x = -ball.velocity.x;
+			ball.position.x = block.position.x + (ball.size.x/2) + (block.size.x/2);
+			break;
+		default:
+			printf("none\n");
+			break;
 	}
 }
 
 // colisão retângulo - retângulo
-void Scene::BallBlockCollision(Block &block)
+void Scene::BallBlockCollisionRectangle(Block &block)
 {
-	// COLLIDIU NA VERTICAL
-	if ((ball.x < block.x + (block.w/2) + (ball.w/2))  &&
-		(ball.x > block.x - (block.w/2) - (ball.w/2)))
+	if ((ball.position.x + (ball.size.x/2) > block.position.x - (block.size.x/2) &&
+		 ball.position.x - (ball.size.x/2) < block.position.x + (block.size.x/2))&&
+		(ball.position.y + (ball.size.y/2) > block.position.y - (block.size.y/2) &&
+		 ball.position.y - (ball.size.y/2) < block.position.y + (block.size.y/2)))
 	{
-		// EM BAIXO
-		if (((ball.y + (ball.h/2) > block.y - (block.h/2))  &&
-		 	 (ball.y + (ball.h/2) < block.y + (block.h/2))))
-		{
-			block.active = false;
-			ball.velocity_y = -ball.velocity_y;
-			ball.y = block.y - (ball.h/2) - (block.h/2);
-			printf("Baixo\n");
-		}
-		// EM CIMA
-		else
-		if (((ball.y - (ball.h/2) < block.y + (block.h/2))  &&
-		     (ball.y - (ball.h/2) > block.y - (block.h/2))))
-		{
-			block.active = false;
-			ball.velocity_y = -ball.velocity_y;
-			ball.y = block.y + (ball.h/2) + (block.h/2);
-			printf("Cima\n");
-		}
+		Direction direction = VectorDirection(block);
+		BallCollisionResolution(direction, block);
 	}
-	// essa parte nunca será executada
-	else
-	if ((ball.y < block.y + (block.h/2) + (ball.h/2))  &&
-		(ball.y > block.y - (block.h/2) - (ball.h/2)))
-	{
-		if (((ball.x + (ball.w/2) > block.x - (block.w/2))  &&
-		 	 (ball.x + (ball.w/2) < block.x + (block.w/2))))
-		{
-			printf("Direita\n");
-			block.active = false;
-			ball.velocity_x = -ball.velocity_x;
-			ball.x = block.x - (ball.w/2) - (block.w/2);
-		}
-		else
-		if (((ball.x - (ball.w/2) < block.x + (block.w/2))  &&
-		     (ball.x - (ball.w/2) > block.x - (block.w/2))))
-		{
-			printf("Esquerda\n");
-			block.active = false;
-			ball.velocity_x = -ball.velocity_x;
-			ball.x = block.x + (ball.w/2) + (block.w/2);
-		}
-	}
-}
-
-// testando outro tipo de colisão
-// circulo - retangulo
-// no momento não funcionando
-void Scene::BallBlockCollision2(Block &block)
-{
-	// Vector from A to B
-	float nx = ball.x - block.x;
-	float ny = ball.y - block.y;
-
-	// Closest point on A to center of B
-	float closestx = nx;
-	float closesty = ny;
-
-	// Calculate half extents along each axis
-	float x_extent = ((block.x + (block.w/2)) - (block.x - (block.w/2))) / 2;
-		float y_extent = ((block.y + (block.h/2)) - (block.y - (block.h/2))) / 2;
-
-	// Clamp point to edges of the AABB
-	closestx = std::clamp(closestx, -x_extent, x_extent);
-	closesty = std::clamp(closesty, -y_extent, y_extent);
-
-	bool inside = false;
-	if (nx == closestx && ny == closesty)
-	{
-		inside = true;
-
-		// Find closest axis
-		if(fabs( nx ) > fabs( ny ))
-		{
-			// Clamp to closest extent
-			if(closestx > 0)
-				closestx = x_extent;
-			else
-				closestx = -x_extent;
-		}
-
-		// y axis is shorter
-		else
-		{
-		// Clamp to closest extent
-			if(closesty > 0)
-				closesty = y_extent;
-			else
-				closesty = -y_extent;
-		}
-	}
-
-	float normalx = nx - closestx;
-	float normaly = ny - closesty;
-	float d = normalx * normaly;
-	float r = ball.w/2;
-
-		// Early out of the radius is shorter than distance to closest point and
-		// Circle not inside the AABB
-	if(d > r * r && !inside)
-		// nao colidiu
-		// return false;
-
-		// Avoided sqrt until we needed
-	d = sqrt(d);
-
-		// Collision normal needs to be flipped to point outside if circle was
-		// inside the AABB
-	if(inside)
-	{
-		// m->normal = -n
-		// m->penetration = r - d
-	}
-	else
-	{
-		// m->normal = n
-		// m->penetration = r - d
-	}
-
-	// colidiu
-	// return true;
 }
 
 // outro tipo de colisão
 // circulo - retangulo
-void Scene::BallBlockCollision1(Block &block)
+void Scene::BallBlockCollisionCircle(Block &block)
 {
 	float testX, testY;
 	float distX, distY, distance;
 
-	if (ball.x < block.x)
+	if (ball.position.x < block.position.x)
 	{
-		testX = block.x; // left edge
+		testX = block.position.x; // left edge
 	}
-	else if (ball.x > block.x + block.w)
+	else if (ball.position.x > block.position.x + block.size.x)
 	{
-		testX = block.x + block.w; // right edge
+		testX = block.position.x + block.size.x; // right edge
 	} 
 
-	if (ball.y < block.y)
+	if (ball.position.y < block.position.y)
 	{
-		testY = block.y; // top edge
+		testY = block.position.y; // top edge
 	}
-	else if (ball.y > block.y + block.h)
+	else if (ball.position.y > block.position.y + block.size.y)
 	{
-		testY = block.y + block.h; // bottom edge
+		testY = block.position.y + block.size.y; // bottom edge
 	}
 	// get distance from closest edges
-	distX = block.x - testX;
-	distY = block.y - testY;
+	distX = block.position.x - testX;
+	distY = block.position.y - testY;
 	distance = sqrt((distX*distX) + (distY*distY));
 
 	// if the distance is less than the radius, collision!
-	if (distance <= block.w)
+	if (distance <= block.size.x)
 	{
-		//colidiu
-
+		// Direction direction = VectorDirection(block);
+		// BallCollisionResolution(direction, &block);
 	}
 }
 
 void Scene::CheckCollisionBallPlayer()
 {
-	if (((ball.x + (ball.w/2) > player.x - (player.w/2)) &&
-		 (ball.x + (ball.w/2) < player.x + (player.w/2))) ||
-		((ball.x - (ball.w/2) > player.x + (player.w/2)) &&
-		 (ball.x - (ball.w/2) < player.x - (player.w/2))))
+	if (((ball.position.x + (ball.size.x/2) > player.position.x - (player.size.x/2)) &&
+		 (ball.position.x + (ball.size.x/2) < player.position.x + (player.size.x/2))) ||
+		((ball.position.x - (ball.size.x/2) > player.position.x + (player.size.x/2)) &&
+		 (ball.position.x - (ball.size.x/2) < player.position.x - (player.size.x/2))))
 	{
-		if (((ball.y + (ball.h/2) > player.y - (player.h/2)) &&
-		 	 (ball.y + (ball.h/2) < player.y + (player.h/2))) ||
-		    ((ball.y - (ball.h/2) > player.y + (player.h/2)) &&
-		     (ball.y - (ball.h/2) < player.y - (player.h/2))))
+		if (((ball.position.y + (ball.size.y/2) > player.position.y - (player.size.y/2)) &&
+		 	 (ball.position.y + (ball.size.y/2) < player.position.y + (player.size.y/2))) ||
+		    ((ball.position.y - (ball.size.y/2) > player.position.y + (player.size.y/2)) &&
+		     (ball.position.y - (ball.size.y/2) < player.position.y - (player.size.y/2))))
 		{
 			// A diferença para saber quão proximo ao centro do player a bola está
-			// ball.x - player.x = distância entre os dois no eixo x
-			// isso dividido por (player.w/2) faz com que esse valor esteja entre -1 e 1
+			// ball.position.x - player.position.x = distância entre os dois no eixo x
+			// isso dividido por (player.size.x/2) faz com que esse valor esteja entre -1 e 1
 			// sendo 0 o centro, -1 esquerda e 1 direita
 			// depois somando 1 faz com que o valor seja entre 0 e 2
 			// por fim divido por 2 para que o valor esteja entre 0 e 1
-			float x_difference = (((ball.x - player.x)/(player.w/2)) + 1)/2;
+			float x_difference = (((ball.position.x - player.position.x)/(player.size.x/2)) + 1)/2;
 
 			// fazemos clamp para o valor ficar entre 0.1 e 0.9
 			// isso afetara quais serão os angulos minimos que ball será rebatido
 			x_difference = std::clamp(x_difference, 0.1f, 0.9f);
 
 			// posição y de ball é acima do player mais suas alturas
-			ball.y = player.y - (player.h/2) - (ball.h/2);
+			ball.position.y = player.position.y - (player.size.y/2) - (ball.size.y/2);
 
 			// com isso conseguimos calcular qual será o angulo com que ball será rebatido usando seno e cosseno
-			ball.velocity_y = -sinf(x_difference * PI) * ball_velocity;
-			ball.velocity_x = -cosf(x_difference * PI) * ball_velocity;
+			ball.velocity.y = -sinf(x_difference * PI) * ball_velocity;
+			ball.velocity.x = -cosf(x_difference * PI) * ball_velocity;
 		}
 	}
 }
@@ -322,25 +281,37 @@ void Scene::CheckCollisionBallPlayer()
 void Scene::CheckBoundaries()
 {
 	// Ball
-	if ((ball.x + (ball.w/2) > 1) || (ball.x - (ball.w/2) < 0))
+	if (ball.position.x + (ball.size.x/2) > 1)
 	{
-		ball.velocity_x = -ball.velocity_x;
+		ball.position.x = 1 - ball.size.x/2;
+		ball.velocity.x = -ball.velocity.x;
+	}
+	else if (ball.position.x - (ball.size.x/2) < 0)
+	{
+		ball.position.x = 0 + ball.size.x/2;
+		ball.velocity.x = -ball.velocity.x;
 	}
 
-	if ((ball.y + (ball.h/2) > 1) || (ball.y - (ball.h/2) < 0))
+	if (ball.position.y + (ball.size.y/2) > 1)
 	{
-		ball.velocity_y = -ball.velocity_y;
+		ball.position.y = 1 - ball.size.y/2;
+		ball.velocity.y = -ball.velocity.y;
+	}
+	else if (ball.position.y - (ball.size.y/2) < 0)
+	{
+		ball.position.y = 0 + ball.size.y/2;
+		ball.velocity.y = -ball.velocity.y;
 	}
 
 	// Player
-	if (player.x + (player.w/2) > 1) 
+	if (player.position.x + (player.size.x/2) > 1) 
 	{
-		player.x = 1 - (player.w/2);
+		player.position.x = 1 - (player.size.x/2);
 	}
 
-	if (player.x - (player.w/2) < 0)
+	if (player.position.x - (player.size.x/2) < 0)
 	{
-		player.x = 0 + (player.w/2);
+		player.position.x = 0 + (player.size.x/2);
 	}
 }
 
@@ -359,41 +330,38 @@ void Scene::Draw()
 
 void Scene::DrawPlayer()
 {
-	// Render Player
 	SDL_SetRenderDrawColor(game->renderer, 255, 0, 0, 255);
 	SDL_Rect player_rect;
-	player_rect.w = (int)(player.w * game->screen_width);
-	player_rect.h = (int)(player.h * game->screen_height);
-	player_rect.x = (int)(((player.x - (player.w/2))) * game->screen_width);
-	player_rect.y = (int)(((player.y - (player.h/2))) * game->screen_height);
+	player_rect.w = (int)(player.size.x * game->screen_width);
+	player_rect.h = (int)(player.size.y * game->screen_height);
+	player_rect.x = (int)(((player.position.x - (player.size.x/2))) * game->screen_width);
+	player_rect.y = (int)(((player.position.y - (player.size.y/2))) * game->screen_height);
 	SDL_RenderFillRect(game->renderer, &player_rect);
 }
 
 void Scene::DrawBall()
 {
-	// Render Ball
-	SDL_SetRenderDrawColor(game->renderer, 0, 255, 0, 255);
 	SDL_Rect ball_rect;
-	ball_rect.w = (int)(ball.w * game->screen_width);
-	ball_rect.h = (int)(ball.h * game->screen_height);
-	ball_rect.x = (int)(((ball.x - (ball.w/2))) * game->screen_width);
-	ball_rect.y = (int)(((ball.y - (ball.h/2))) * game->screen_height);
-	SDL_RenderFillRect(game->renderer, &ball_rect);
+	ball_rect.w = (int)(ball.size.x * game->screen_width);
+	ball_rect.h = (int)(ball.size.y * game->screen_height);
+	ball_rect.x = (int)(((ball.position.x - (ball.size.x/2))) * game->screen_width);
+	ball_rect.y = (int)(((ball.position.y - (ball.size.y/2))) * game->screen_height);
+
+	SDL_RenderCopy(game->renderer, ball.texture, NULL, &ball_rect);
 }
 
 void Scene::DrawBlocks()
 {
-	// Render Blocks
 	SDL_SetRenderDrawColor(game->renderer, 0, 0, 255, 255);
 	SDL_Rect block_rect;
 	for (int i = 0; i < block_vector.size(); ++i)
 	{
 		if (block_vector[i].active)
 		{
-			block_rect.w = (int)(block_vector[i].w * game->screen_width);
-			block_rect.h = (int)(block_vector[i].h * game->screen_height);
-			block_rect.x = (int)(((block_vector[i].x - (block_vector[i].w/2))) * game->screen_width);
-			block_rect.y = (int)(((block_vector[i].y - (block_vector[i].h/2))) * game->screen_height);
+			block_rect.w = (int)(block_vector[i].size.x * game->screen_width);
+			block_rect.h = (int)(block_vector[i].size.y * game->screen_height);
+			block_rect.x = (int)(((block_vector[i].position.x - (block_vector[i].size.x/2))) * game->screen_width);
+			block_rect.y = (int)(((block_vector[i].position.y - (block_vector[i].size.y/2))) * game->screen_height);
 			SDL_RenderFillRect(game->renderer, &block_rect);
 		}
 	}
@@ -405,7 +373,7 @@ void Scene::CreateBlocks()
 	int max_row = 6;
 
 	float block_width = 0.09f;
-	float block_height = 0.08f;
+	float block_height = 0.04f;
 	float vertical_spacing = block_height * 10;
 	float start_height = 0.1f;
 
@@ -414,10 +382,10 @@ void Scene::CreateBlocks()
 		for (int j = 0; j < max_row; ++j)
 		{
 			Block temp_block;
-			temp_block.x =   ((float) i/ (float) max_col) + (block_width/2) + (0.005f);
-			temp_block.y = ((((float) j/ (float) max_row) * vertical_spacing) + (block_height/2)) + start_height;
-			temp_block.w = block_width;
-			temp_block.h = block_height;
+			temp_block.position.x =   ((float) i/ (float) max_col) + (block_width/2) + (0.005f);
+			temp_block.position.y = ((((float) j/ (float) max_row) * vertical_spacing) + (block_height/2)) + start_height;
+			temp_block.size.x = block_width;
+			temp_block.size.y = block_height;
 			temp_block.active = true;
 			
 			block_vector.push_back(temp_block);

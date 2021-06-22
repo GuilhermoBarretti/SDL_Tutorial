@@ -1,6 +1,4 @@
 #define SDL_MAIN_HANDLED 
-#include "SDL.h"
-#include "SDL_image.h"
 #include "stdio.h"
 #include "game.hpp"
 #include "scene.hpp"
@@ -8,15 +6,13 @@
 //cl main.cpp scene.cpp button.cpp player.cpp /Iinclude SDL2main.lib SDL2.lib SDL2_image.lib
 
 /*
-	Breakout Game
-	- Surface
-    - Física Circulo com retângulos
+
 */
 
 int main(int argc, char* argv[])
 {
-	Game *game = new Game();
-	Scene *scene = new Scene(game);
+    Game *game = new Game();
+    Scene *scene = NULL;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -40,6 +36,8 @@ int main(int argc, char* argv[])
     );
     game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED);
 
+    scene = new Scene(game);
+
     while(!game->quit)
     {
     	scene->HandleInput();
@@ -50,6 +48,7 @@ int main(int argc, char* argv[])
     SDL_DestroyRenderer(game->renderer);
     SDL_DestroyWindow(game->window);
     
+    IMG_Quit();
     SDL_Quit();
 
     return 0;

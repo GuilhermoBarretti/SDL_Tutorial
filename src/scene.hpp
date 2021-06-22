@@ -6,6 +6,7 @@
 #include "player.hpp"
 #include "block.hpp"
 #include "ball.hpp"
+#include "direction.hpp"
 
 class Game;
 
@@ -27,9 +28,10 @@ public:
 	void CheckCollisionBallPlayer();
 	void CheckCollisionBallBlock();
 
-	void BallBlockCollision(Block &block);
-	void BallBlockCollision1(Block &block);
-	void BallBlockCollision2(Block &block);
+	Direction VectorDirection(Block block);
+	void BallCollisionResolution(Direction direction, Block &block);
+	void BallBlockCollisionRectangle(Block &block);
+	void BallBlockCollisionCircle(Block &block);
 
 	void DrawPlayer();
 	void DrawBall();

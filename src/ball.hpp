@@ -6,6 +6,8 @@
 class Ball : public Object
 {
 public:
+
+	bool collided = false;
 };
 
 #endif
