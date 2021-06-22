@@ -3,12 +3,6 @@
 #include "game.hpp"
 #include "scene.hpp"
 
-//cl main.cpp scene.cpp button.cpp player.cpp /Iinclude SDL2main.lib SDL2.lib SDL2_image.lib
-
-/*
-
-*/
-
 int main(int argc, char* argv[])
 {
     Game *game = new Game();

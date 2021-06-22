@@ -28,6 +28,18 @@ Scene::Scene(Game *_game)
 	{
 		printf("error loading texture\n");
 	}
+
+	block_texture = game->LoadTexture("resources/block.png");
+	if (block_texture == NULL)
+	{
+		printf("error loading texture\n");
+	}
+
+	player.texture = game->LoadTexture("resources/player.png");
+	if (block_texture == NULL)
+	{
+		printf("error loading texture\n");
+	}
 }
 
 Scene::~Scene()
@@ -163,7 +175,6 @@ Direction Scene::VectorDirection(Block block)
 
 	return (Direction) -1;
 }
-
 
 void Scene::BallCollisionResolution(Direction direction, Block &block)
 {
@@ -330,13 +341,12 @@ void Scene::Draw()
 
 void Scene::DrawPlayer()
 {
-	SDL_SetRenderDrawColor(game->renderer, 255, 0, 0, 255);
 	SDL_Rect player_rect;
 	player_rect.w = (int)(player.size.x * game->screen_width);
 	player_rect.h = (int)(player.size.y * game->screen_height);
 	player_rect.x = (int)(((player.position.x - (player.size.x/2))) * game->screen_width);
 	player_rect.y = (int)(((player.position.y - (player.size.y/2))) * game->screen_height);
-	SDL_RenderFillRect(game->renderer, &player_rect);
+	SDL_RenderCopy(game->renderer, player.texture, NULL, &player_rect);
 }
 
 void Scene::DrawBall()
@@ -352,7 +362,7 @@ void Scene::DrawBall()
 
 void Scene::DrawBlocks()
 {
-	SDL_SetRenderDrawColor(game->renderer, 0, 0, 255, 255);
+	// SDL_SetRenderDrawColor(game->renderer, 0, 0, 255, 255);
 	SDL_Rect block_rect;
 	for (int i = 0; i < block_vector.size(); ++i)
 	{
@@ -362,7 +372,7 @@ void Scene::DrawBlocks()
 			block_rect.h = (int)(block_vector[i].size.y * game->screen_height);
 			block_rect.x = (int)(((block_vector[i].position.x - (block_vector[i].size.x/2))) * game->screen_width);
 			block_rect.y = (int)(((block_vector[i].position.y - (block_vector[i].size.y/2))) * game->screen_height);
-			SDL_RenderFillRect(game->renderer, &block_rect);
+			SDL_RenderCopy(game->renderer, block_texture, NULL, &block_rect);
 		}
 	}
 }
@@ -372,9 +382,8 @@ void Scene::CreateBlocks()
 	int max_col = 10;
 	int max_row = 6;
 
-	float block_width = 0.09f;
-	float block_height = 0.04f;
-	float vertical_spacing = block_height * 10;
+	float block_width = 0.1f;
+	float block_height = 0.05f;
 	float start_height = 0.1f;
 
 	for (int i = 0; i < max_col; ++i)
@@ -382,8 +391,8 @@ void Scene::CreateBlocks()
 		for (int j = 0; j < max_row; ++j)
 		{
 			Block temp_block;
-			temp_block.position.x =   ((float) i/ (float) max_col) + (block_width/2) + (0.005f);
-			temp_block.position.y = ((((float) j/ (float) max_row) * vertical_spacing) + (block_height/2)) + start_height;
+			temp_block.position.x = ((float) i/ (float) max_col) + (block_width/2);
+			temp_block.position.y = (j * (block_height)) + start_height;
 			temp_block.size.x = block_width;
 			temp_block.size.y = block_height;
 			temp_block.active = true;

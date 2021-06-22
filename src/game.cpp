@@ -2,27 +2,24 @@
 
 SDL_Texture* Game::LoadTexture(std::string file_name)
 {
-	//The final texture
-	SDL_Texture* newTexture = NULL;
-
-	//Load image at specified file_name
-	SDL_Surface* loadedSurface = IMG_Load(file_name.c_str());
-	if( loadedSurface == NULL )
+	SDL_Texture* return_texture = NULL;
+	SDL_Surface* loaded_surface = IMG_Load(file_name.c_str());
+	if( loaded_surface == NULL )
 	{
-		printf("Unable to load image %s! SDL_image Error: %s\n", file_name.c_str(), IMG_GetError());
-	}
-	else
-	{
-		//Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-		if( newTexture == NULL )
-		{
-			printf("Unable to create texture from %s! SDL Error: %s\n", file_name.c_str(), SDL_GetError());
-		}
-
-		//Get rid of old loaded surface
-		SDL_FreeSurface(loadedSurface);
+		printf("Erro ao carregar imagem %s! SDL_image Error: %s\n", file_name.c_str(), IMG_GetError());
+		SDL_FreeSurface(loaded_surface);
+		return NULL;
 	}
 
-	return newTexture;
+	return_texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
+	if( return_texture == NULL )
+	{
+		printf("Erro ao criar texture de %s! SDL Error: %s\n", file_name.c_str(), SDL_GetError());
+		SDL_FreeSurface(loaded_surface);
+		return NULL;
+	}
+
+	SDL_FreeSurface(loaded_surface);
+
+	return return_texture;
 }

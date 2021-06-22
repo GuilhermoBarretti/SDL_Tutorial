@@ -17,6 +17,7 @@ class Scene
 	Player player;
 	float ball_velocity;
 	Ball ball;
+	SDL_Texture *block_texture = NULL;
 	std::deque<Block> block_vector;
 
 public:
